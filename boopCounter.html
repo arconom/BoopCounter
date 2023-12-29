@@ -311,7 +311,8 @@ function persist(key, data){
 }
 
 function deleteStorage(){
-    localStorage.Clear();
+    localStorage.clear();
+    renderChart([]);
 }
 
 function get(key){
