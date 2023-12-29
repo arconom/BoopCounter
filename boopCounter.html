@@ -1,0 +1,332 @@
+<html>
+
+<head>
+<style>
+.add-button, .reset-button
+{
+    width: 5em;
+    height: 2em;
+}
+
+.scroll
+{
+    max-height: 20em;
+    overflow: scroll;
+}
+
+#selSession 
+{
+    width: 15em;
+}
+
+
+.css-chart{
+border-bottom: 1px solid;
+border-left: 1px solid;
+height: var(--widget-size);
+width: var(--widget-size);
+margin: 1em;
+padding: 0;
+position: relative;
+}
+
+.line-chart{
+list-style: none;
+margin: 0;
+padding: 0;
+}
+
+.data-point{
+background-color: white;
+border: 1px solid purple;
+border-radius: 50%;
+height: 4px;
+position: absolute;
+width: 4px;
+}
+
+.data-point-max{
+background-color: white;
+border: 1px solid purple;
+border-radius: 50%;
+height: 8px;
+position: absolute;
+width: 8px;
+}
+
+.data-point-three{
+border: 1px solid green;
+border-radius: 30%;
+height: 8px;
+position: absolute;
+width: 8px;
+}
+
+.grid-header{
+    font-weight: bold;
+    background-color: purple;
+    color: white;
+}
+
+.grid{
+    width: 20em;
+    min-width: 20em;
+    max-width: 20em;
+    display: grid;
+    grid-template-columns: auto auto auto;
+}
+
+.grid-row-wrapper{
+    display: contents;
+
+    height: 2em;
+    max-height: 2em;
+} 
+
+.grid > .grid-row-wrapper:nth-child(odd) > div{
+    background-color: lightgrey;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<h1>Boop Counter/Timer</h1>
+<div>Click the + buttons to start counting and timing</div>
+
+    <div>
+        <button class="reset-button" onclick="reset()">Reset</button>
+        <button class="add-button" onclick="add(1)">+1</button>
+        <button class="add-button" onclick="add(2)">+2</button>
+        <button class="add-button" onclick="add(5)">+5</button>
+        <button class="add-button" onclick="add(10)">+10</button>
+    </div>
+    
+<br/>
+<hr/>
+<br/>
+<div >
+<div>Select a session to see the data below</div>
+<select  id="selSession" onchange="loadSessionData()">Session Log</select>
+<br/>
+<br/>
+<br/>
+<div class="grid grid-header">
+    <div>Time</div>
+    <div>Boops</div>
+    <div style="margin-right: 48px;">BPM</div>
+</div>
+
+<div class="grid scroll" id="tblData">
+</div>
+
+<br/>
+<hr/>
+<br/>
+
+<aside>
+
+<h2>Progress Graph</h2>
+<div>Every time you click Reset, the data is saved in localStorage["boops"] and displayed here.</div>
+<div>Mouse over to see boops</div>
+<div><button onclick="deleteStorage()">Click to delete localStorage["boops"]</button></div>
+
+<figure class="css-chart" style="--widget-size: 400px;">
+<ul id="ulChart" class="line-chart">
+
+</ul>
+</figure>
+
+
+</aside>
+
+
+</body>
+
+<script>
+
+var count = 0;
+var startTime = null;
+var countTimeList = [];
+var grid = document.querySelector("#tblData");
+var select = document.querySelector("#selSession");
+var chart = document.querySelector("#ulChart");
+var scrollable = document.querySelector(".scroll");
+
+const storageKey = "boops";
+const threeMinutes = 3 * 60 * 1000;
+
+loadSessions();
+
+function renderChart(list){
+
+chart.innerHTML = "";
+
+        let highestCount = 0;
+        
+    for(let i = 0; i < list.length; i++)
+    {
+        for(let j = 0; j < list[i].length; j++)
+        {
+            if(list[i][j].count > highestCount){
+                highestCount = list[i][j].count;
+            }
+        }
+    }
+
+    for(let i = 0; i < list.length; i++)
+    {
+        var item = list[i];
+        
+        if(item){
+        
+            var count = (item[list[i].length - 1]?.count ?? 0);
+            var bottom = count / highestCount * 400;
+            var left = i * (360 / list.length) + 20;
+            var threeMinuteCount = getCountAtTime(list[i], threeMinutes);
+
+            chart.insertAdjacentHTML("beforeend", `<li><div title="${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
+            chart.insertAdjacentHTML("beforeend", `<li><div title="${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
+        }
+    }
+}
+
+function getHighestCount(list){
+    return list[list.length - 1];
+}
+
+function getCountAtTime(list, maxTime){
+    var time = 0;
+    var count = 0;
+    
+    for(let i = 0; i < list.length; i++){
+        
+        if(list[i].duration <= maxTime && list[i].duration > time)
+        {
+            time = list[i].duration;
+            count = list[i].count;
+        }
+        
+        list[list.length - 1];
+    }
+    
+    return count;
+}
+
+function loadSessions(){
+    var data = localStorage[storageKey];
+    var boops = JSON.parse(data ?? "[]");
+
+    select.innerHTML = "";
+
+    for(let i = 0; i < boops.length; i++ ){
+        var list = boops[i];
+        var item = list?.[boops[i].length - 1];
+        
+        if(item){
+            var title = new Date(item.startTime).toISOString() + " - " + item.count + " boops " + item.duration + " seconds";
+            select.insertAdjacentHTML("beforeend", `<option value="${i}">${title}</option>`);
+        }
+    }
+    
+    renderChart(boops);
+}
+
+function loadSessionData(){
+    grid.innerHTML = "";
+
+    var boops = get(storageKey)[select.value];
+
+    for(let i = 0; i < boops.length; i++ ){
+        addGridRow(boops[i].duration, boops[i].count);
+    }
+}
+
+function updateSearchResults(){
+    searchResultLabel.textContext = getTimeByValue(parseInt(searchInput.value));
+}
+
+
+function getTimeByValue(val){
+    for (let i = 0; i < countTimeList.length; i++){
+        if(countTimeList[i].count >= val){
+            return countTimeList[i].time;
+        }
+    }
+    
+    return "count not reached";
+}
+
+function add(num){
+    count += num;
+
+    if(!startTime){
+        startTime = new Date().getTime();
+    }
+
+    var duration = ((new Date().getTime() - startTime) / 1000).toFixed(2);
+    var bpm = calculateBPM(count, duration).toFixed(0);
+    
+    countTimeList.push({
+        startTime: startTime,
+        duration: duration, 
+        count: count
+    });
+
+    addGridRow(duration, count, bpm);
+}
+
+function calculateBPM(boops, durationSeconds)
+{
+    return boops / (durationSeconds / 60);
+}
+
+
+function addGridRow(time, count, bpm){
+    grid.insertAdjacentHTML("beforeEnd", 
+        '<div class="grid-row-wrapper">' +
+        '<div class="time">' + time + 's </div>'+
+        '<div class="count">' + count + '</div>'+
+        '<div class="bpm">' + bpm + '</div>') + 
+        '</div>'
+        ;
+    scrollable.scrollTo(0, scrollable.scrollHeight);
+}
+
+function reset() {
+    persist(storageKey, countTimeList);
+    loadSessions();
+    count = 0;
+    startTime = null;
+    countTimeList = [];
+    grid.innerHTML = "";
+}
+
+function persist(key, data){
+    var val = get(key);
+    val.push(data);
+    localStorage[key] = JSON.stringify(val);
+}
+
+function deleteStorage(){
+    localStorage.Clear();
+}
+
+function get(key){
+    var val = localStorage[key];
+ 
+    if (!val) {
+        val = [];
+    }
+    else{
+        val = JSON.parse(val);
+    }
+
+    return val;
+}
+
+</script>
+
+</html>
