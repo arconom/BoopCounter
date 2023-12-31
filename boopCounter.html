@@ -131,6 +131,16 @@ width: 8px;
 <h2>Progress Graph</h2>
 <div>Every time you click Reset, the data is saved in localStorage["boops"] and displayed here.</div>
 <div>Mouse over to see boops</div>
+
+<div>
+    <label>Total Boops</label>
+    <span class="data-point-max"></span>
+</div>
+<div>
+    <label>Boops at 3 minutes</label>
+    <span class="data-point-three"></span>
+</div>
+
 <div><button onclick="deleteStorage()">Click to delete localStorage["boops"]</button></div>
 
 <figure class="css-chart" style="--widget-size: 400px;">
@@ -138,57 +148,65 @@ width: 8px;
 
 </ul>
 </figure>
-
-
 </aside>
-
-
 </body>
-
 <script>
 
 var count = 0;
 var startTime = null;
-var countTimeList = [];
+var countTimeArray = [];
 var grid = document.querySelector("#tblData");
 var select = document.querySelector("#selSession");
 var chart = document.querySelector("#ulChart");
 var scrollable = document.querySelector(".scroll");
 
+const graphDimensionPixels = 400;
+const graphMarginPixels = 20;
+const graphWidthPixels = graphDimensionPixels - (graphMarginPixels * 2);
+
 const storageKey = "boops";
-const threeMinutes = 3 * 60 * 1000;
+const threeMinutes = 180 * 1000;
 
 loadSessions();
 
-function renderChart(list){
+function renderChart(map){
 
-chart.innerHTML = "";
+    chart.innerHTML = "";
 
-        let highestCount = 0;
+    let highestCount = 0;
         
-    for(let i = 0; i < list.length; i++)
+    //get the highest count of all the sessions
+    for(let key of map.keys())
     {
-        for(let j = 0; j < list[i].length; j++)
+        let list = map.get(key);
+        
+        for(let j = 0; j < list.length; j++)
         {
-            if(list[i][j].count > highestCount){
-                highestCount = list[i][j].count;
+            if(list[j].count > highestCount){
+                highestCount = list[j].count;
             }
         }
     }
 
-    for(let i = 0; i < list.length; i++)
+    let index = 0;
+    //then render the chart
+    for(let key of map.keys())
     {
-        var item = list[i];
         
-        if(item){
+        let list = map.get(key);
+        //we want to start at 1
+        index++;
         
-            var count = (item[list[i].length - 1]?.count ?? 0);
-            var bottom = count / highestCount * 400;
-            var left = i * (360 / list.length) + 20;
-            var threeMinuteCount = getCountAtTime(list[i], threeMinutes);
+        if(list)
+        {
+            var count = (list[list.length - 1]?.count ?? 0);
+            var bottom = count / highestCount * graphDimensionPixels;
+            var left = index * (graphWidthPixels / map.size) + graphMarginPixels;
+            var threeMinuteCount = getCountAtTime(list, threeMinutes);
+            var threeMinuteBottom = threeMinuteCount / highestCount * graphDimensionPixels;
 
             chart.insertAdjacentHTML("beforeend", `<li><div title="${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
-            chart.insertAdjacentHTML("beforeend", `<li><div title="${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
+            chart.insertAdjacentHTML("beforeend", `<li><div title="${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${threeMinuteBottom}px; left: ${left}px"></div></li>`);
         }
     }
 }
@@ -197,15 +215,15 @@ function getHighestCount(list){
     return list[list.length - 1];
 }
 
-function getCountAtTime(list, maxTime){
-    var time = 0;
-    var count = 0;
+function getCountAtTime(list, maxTimeMilliseconds){
+    let timeMilliseconds = 0;
+    let count = 0;
     
     for(let i = 0; i < list.length; i++){
         
-        if(list[i].duration <= maxTime && list[i].duration > time)
+        if(list[i].boopTimeOffsetMilliseconds <= maxTimeMilliseconds && list[i].boopTimeOffsetMilliseconds > timeMilliseconds)
         {
-            time = list[i].duration;
+            timeMilliseconds = list[i].boopTimeOffsetMilliseconds;
             count = list[i].count;
         }
         
@@ -216,32 +234,32 @@ function getCountAtTime(list, maxTime){
 }
 
 function loadSessions(){
-    var data = localStorage[storageKey];
-    var boops = JSON.parse(data ?? "[]");
+    var data = localStorage[storageKey] ?? null;
+    var boopsMap = new Map(JSON.parse(data));
 
     select.innerHTML = "";
+    select.insertAdjacentHTML("beforeend", `<option value="-1"></option>`);
 
-    for(let i = 0; i < boops.length; i++ ){
-        var list = boops[i];
-        var item = list?.[boops[i].length - 1];
+    for(let key of boopsMap.keys()){
+        const list = boopsMap.get(key);
+        //get the last item, because it should be the highest count
+        const item = list?.[list.length - 1];
+        const seconds = (item.boopTimeOffsetMilliseconds / 1000).toFixed(0);
         
         if(item){
-            var title = new Date(item.startTime).toISOString() + " - " + item.count + " boops " + item.duration + " seconds";
-            select.insertAdjacentHTML("beforeend", `<option value="${i}">${title}</option>`);
+            const title = new Date(key).toISOString() + " - " + item.count + " boops " + seconds + " seconds";
+            select.insertAdjacentHTML("beforeend", `<option value="${key}">${title}</option>`);
         }
     }
     
-    renderChart(boops);
+    renderChart(boopsMap);
 }
 
 function loadSessionData(){
     grid.innerHTML = "";
-
-    var boops = get(storageKey)[select.value];
-
-    for(let i = 0; i < boops.length; i++ ){
-        addGridRow(boops[i].duration, boops[i].count);
-    }
+    let key = parseInt(select.value);
+    var boops = getMapFromLocalstorage(storageKey).get(key);
+    addGridRows(key, boops);
 }
 
 function updateSearchResults(){
@@ -250,9 +268,9 @@ function updateSearchResults(){
 
 
 function getTimeByValue(val){
-    for (let i = 0; i < countTimeList.length; i++){
-        if(countTimeList[i].count >= val){
-            return countTimeList[i].time;
+    for (let i = 0; i < countTimeArray.length; i++){
+        if(countTimeArray[i].count >= val){
+            return countTimeArray[i].time;
         }
     }
     
@@ -264,27 +282,41 @@ function add(num){
 
     if(!startTime){
         startTime = new Date().getTime();
+        loadSessions();
+        grid.innerHTML = "";
     }
 
-    var duration = ((new Date().getTime() - startTime) / 1000).toFixed(2);
-    var bpm = calculateBPM(count, duration).toFixed(0);
+    const boopTimeOffsetMilliseconds = new Date().getTime() - startTime;
     
-    countTimeList.push({
-        startTime: startTime,
-        duration: duration, 
+    countTimeArray.push({
+        boopTimeOffsetMilliseconds: boopTimeOffsetMilliseconds, 
         count: count
     });
 
+    const duration = ((new Date().getTime() - startTime) / 1000).toFixed(2);
+    const bpm = calculateBPM(count, duration).toFixed(0);
     addGridRow(duration, count, bpm);
 }
 
-function calculateBPM(boops, durationSeconds)
+function calculateBPM(count, durationSeconds)
 {
-    return boops / (durationSeconds / 60);
+    return count / (durationSeconds / 60);
 }
 
 
-function addGridRow(time, count, bpm){
+function addGridRows(sessionStartTime, boopsList){
+    for(let i = 0; i < boopsList.length; i++ ){
+        const item = boopsList[i];
+        const duration = (item.boopTimeOffsetMilliseconds / 1000).toFixed(2);
+        const bpm = calculateBPM(item.count, duration).toFixed(0);
+    
+        addGridRow(duration, item.count, bpm);
+    }
+}
+
+
+function addGridRow(time, count, bpm)
+{
     grid.insertAdjacentHTML("beforeEnd", 
         '<div class="grid-row-wrapper">' +
         '<div class="time">' + time + 's </div>'+
@@ -296,18 +328,18 @@ function addGridRow(time, count, bpm){
 }
 
 function reset() {
-    persist(storageKey, countTimeList);
+    persist(storageKey, countTimeArray);
     loadSessions();
     count = 0;
     startTime = null;
-    countTimeList = [];
+    countTimeArray = [];
     grid.innerHTML = "";
 }
 
-function persist(key, data){
-    var val = get(key);
-    val.push(data);
-    localStorage[key] = JSON.stringify(val);
+function persist(key, array){
+    var map = new Map(getMapFromLocalstorage(key));
+    map.set(startTime, array);
+    localStorage[key] = JSON.stringify(Array.from(map.entries()));
 }
 
 function deleteStorage(){
@@ -315,17 +347,17 @@ function deleteStorage(){
     renderChart([]);
 }
 
-function get(key){
+function getMapFromLocalstorage(key){
     var val = localStorage[key];
  
     if (!val) {
-        val = [];
+        val = null;
     }
     else{
         val = JSON.parse(val);
     }
 
-    return val;
+    return new Map(val);
 }
 
 </script>
