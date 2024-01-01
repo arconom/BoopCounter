@@ -287,28 +287,35 @@ function add(num){
     }
 
     const boopTimeOffsetMilliseconds = new Date().getTime() - startTime;
+    const previousEntry = countTimeArray[countTimeArray.length - 1];
     
-    countTimeArray.push({
+    const entry = {
         boopTimeOffsetMilliseconds: boopTimeOffsetMilliseconds, 
         count: count
-    });
-
-    const duration = ((new Date().getTime() - startTime) / 1000).toFixed(2);
-    const bpm = calculateBPM(count, duration).toFixed(0);
+    };
+    
+    countTimeArray.push(entry);
+    
+    const duration = (boopTimeOffsetMilliseconds / 1000).toFixed(2);
+    const bpm = calculateBPM(entry, previousEntry).toFixed(0);
     addGridRow(duration, count, bpm);
 }
 
-function calculateBPM(count, durationSeconds)
+function calculateBPM(countObject, previousCountObject)
 {
-    return count / (durationSeconds / 60);
+    const deltaCount = countObject.count - previousCountObject?.count ?? 0;
+    const deltaSeconds = countObject.boopTimeOffsetMilliseconds - previousCountObject?.boopTimeOffsetMilliseconds ?? 0;
+    
+    return deltaCount / (deltaSeconds / 60000);
 }
 
 
 function addGridRows(sessionStartTime, boopsList){
     for(let i = 0; i < boopsList.length; i++ ){
+        const previousItem = boopsList[i-1];
         const item = boopsList[i];
         const duration = (item.boopTimeOffsetMilliseconds / 1000).toFixed(2);
-        const bpm = calculateBPM(item.count, duration).toFixed(0);
+        const bpm = calculateBPM(item, previousItem).toFixed(0);
     
         addGridRow(duration, item.count, bpm);
     }
