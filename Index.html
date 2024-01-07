@@ -247,7 +247,6 @@ function loadSessions(){
     const data = localStorage[storageKey] ?? null;
     const boopsMap = new Map(JSON.parse(data));
     let mostBoops = 0;
-    let averageBoops = 0;
     let totalBoops = 0;
 
     select.innerHTML = "";
@@ -273,7 +272,7 @@ function loadSessions(){
     renderChart(boopsMap);
     
     mostBoopsSpan.textContent = mostBoops; 
-    averageBoopsSpan.textContent = averageBoops; 
+    averageBoopsSpan.textContent = totalBoops / boopsMap.keys().length; 
 }
 
 function loadSessionData(){
