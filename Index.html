@@ -248,7 +248,7 @@ function loadSessions(){
     const boopsMap = new Map(JSON.parse(data));
     let mostBoops = 0;
     let totalBoops = 0;
-
+    
     select.innerHTML = "";
     select.insertAdjacentHTML("beforeend", `<option value="-1"></option>`);
 
@@ -272,7 +272,7 @@ function loadSessions(){
     renderChart(boopsMap);
     
     mostBoopsSpan.textContent = mostBoops; 
-    averageBoopsSpan.textContent = totalBoops / boopsMap.keys().length; 
+    averageBoopsSpan.textContent = totalBoops / boopsMap.size; 
 }
 
 function loadSessionData(){
