@@ -148,6 +148,14 @@ width: 8px;
 
 </ul>
 </figure>
+
+<div>
+Most boops in a session: <span id="mostBoops"></span>
+</div>
+<div>
+Average boops in a session: <span id="averageBoops"></span>
+</div>
+
 </aside>
 </body>
 <script>
@@ -155,10 +163,12 @@ width: 8px;
 var count = 0;
 var startTime = null;
 var countTimeArray = [];
-var grid = document.querySelector("#tblData");
-var select = document.querySelector("#selSession");
-var chart = document.querySelector("#ulChart");
-var scrollable = document.querySelector(".scroll");
+const grid = document.querySelector("#tblData");
+const select = document.querySelector("#selSession");
+const chart = document.querySelector("#ulChart");
+const scrollable = document.querySelector(".scroll");
+const mostBoopsSpan = document.querySelector("#mostBoops");
+const averageBoopsSpan = document.querySelector("#averageBoops");
 
 const graphDimensionPixels = 400;
 const graphMarginPixels = 20;
@@ -234,8 +244,11 @@ function getCountAtTime(list, maxTimeMilliseconds){
 }
 
 function loadSessions(){
-    var data = localStorage[storageKey] ?? null;
-    var boopsMap = new Map(JSON.parse(data));
+    const data = localStorage[storageKey] ?? null;
+    const boopsMap = new Map(JSON.parse(data));
+    let mostBoops = 0;
+    let averageBoops = 0;
+    let totalBoops = 0;
 
     select.innerHTML = "";
     select.insertAdjacentHTML("beforeend", `<option value="-1"></option>`);
@@ -246,6 +259,11 @@ function loadSessions(){
         const item = list?.[list.length - 1];
         const seconds = (item.boopTimeOffsetMilliseconds / 1000).toFixed(0);
         
+        totalBoops += item.count;
+        if(item.count > mostBoops){
+            mostBoops = item.count;
+        }
+        
         if(item){
             const title = new Date(key).toISOString() + " - " + item.count + " boops " + seconds + " seconds";
             select.insertAdjacentHTML("beforeend", `<option value="${key}">${title}</option>`);
@@ -253,6 +271,9 @@ function loadSessions(){
     }
     
     renderChart(boopsMap);
+    
+    mostBoopsSpan.text = mostBoops; 
+    averageBoopsSpan.text = averageBoops; 
 }
 
 function loadSessionData(){
