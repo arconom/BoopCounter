@@ -272,7 +272,7 @@ function loadSessions(){
     renderChart(boopsMap);
     
     mostBoopsSpan.textContent = mostBoops; 
-    averageBoopsSpan.textContent = totalBoops / boopsMap.size; 
+    averageBoopsSpan.textContent = (totalBoops / boopsMap.size).toFixed(2); 
 }
 
 function loadSessionData(){
