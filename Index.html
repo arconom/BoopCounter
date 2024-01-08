@@ -254,18 +254,20 @@ function loadSessions(){
 
     for(let key of boopsMap.keys()){
         const list = boopsMap.get(key);
-        //get the last item, because it should be the highest count
-        const item = list?.[list.length - 1];
-        const seconds = (item.boopTimeOffsetMilliseconds / 1000).toFixed(0);
-        
-        totalBoops += item.count;
-        if(item.count > mostBoops){
-            mostBoops = item.count;
-        }
-        
-        if(item){
-            const title = new Date(key).toISOString() + " - " + item.count + " boops " + seconds + " seconds";
-            select.insertAdjacentHTML("beforeend", `<option value="${key}">${title}</option>`);
+        if(list.length > 0){
+            //get the last item, because it should be the highest count
+            const item = list?.[list.length - 1];
+            const seconds = (item.boopTimeOffsetMilliseconds / 1000).toFixed(0);
+            
+            totalBoops += item.count;
+            if(item.count > mostBoops){
+                mostBoops = item.count;
+            }
+            
+            if(item){
+                const title = new Date(key).toISOString() + " - " + item.count + " boops " + seconds + " seconds";
+                select.insertAdjacentHTML("beforeend", `<option value="${key}">${title}</option>`);
+            }
         }
     }
     
