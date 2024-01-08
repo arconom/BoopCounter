@@ -121,6 +121,8 @@ width: 8px;
 
 <div class="grid scroll" id="tblData">
 </div>
+<div>Average BPM: <span id="bpm"></span>
+</div>
 
 <br/>
 <hr/>
@@ -169,6 +171,7 @@ const chart = document.querySelector("#ulChart");
 const scrollable = document.querySelector(".scroll");
 const mostBoopsSpan = document.querySelector("#mostBoops");
 const averageBoopsSpan = document.querySelector("#averageBoops");
+const bpmSpan = document.querySelector("#bpm");
 
 const graphDimensionPixels = 400;
 const graphMarginPixels = 20;
@@ -319,16 +322,21 @@ function add(num){
     countTimeArray.push(entry);
     
     const duration = (boopTimeOffsetMilliseconds / 1000).toFixed(2);
-    const bpm = calculateBPM(entry, previousEntry).toFixed(0);
+    const bpm = calculateBPMDelta(entry, previousEntry).toFixed(0);
     addGridRow(duration, count, bpm);
 }
 
-function calculateBPM(countObject, previousCountObject)
+function calculateBPMDelta(countObject, previousCountObject)
 {
     const deltaCount = countObject.count - previousCountObject?.count ?? 0;
-    const deltaSeconds = countObject.boopTimeOffsetMilliseconds - previousCountObject?.boopTimeOffsetMilliseconds ?? 0;
+    const deltaSeconds = (countObject.boopTimeOffsetMilliseconds - previousCountObject?.boopTimeOffsetMilliseconds ?? 0) / 1000;
     
-    return deltaCount / (deltaSeconds / 60000);
+    return calculateBPM(deltaCount, deltaSeconds);
+}
+
+function calculateBPM(count, seconds)
+{
+    return count / (seconds / 60);
 }
 
 
@@ -354,6 +362,7 @@ function addGridRow(time, count, bpm)
         '</div>'
         ;
     scrollable.scrollTo(0, scrollable.scrollHeight);
+    bpmSpan.textContent = calculateBPM(count, time).toFixed(0);
 }
 
 function reset() {
