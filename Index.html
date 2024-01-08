@@ -357,12 +357,14 @@ function addGridRow(time, count, bpm)
 }
 
 function reset() {
-    persist(storageKey, countTimeArray);
-    loadSessions();
-    count = 0;
-    startTime = null;
-    countTimeArray = [];
-    grid.innerHTML = "";
+    if(countTimeArray.length > 0){
+        persist(storageKey, countTimeArray);
+        loadSessions();
+        count = 0;
+        startTime = null;
+        countTimeArray = [];
+        grid.innerHTML = "";
+    }
 }
 
 function persist(key, array){
