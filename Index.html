@@ -232,7 +232,7 @@ function renderChart(map){
             let startTime = new Date(key).toLocaleString();
 
             let durationMinutes = Math.floor(list[list.length - 1].boopTimeOffsetMilliseconds / 60000);
-            let durationSeconds = Math.floor(list[list.length - 1].boopTimeOffsetMilliseconds % 60000).toFixed(2);
+            let durationSeconds = Math.floor(list[list.length - 1].boopTimeOffsetMilliseconds % 60000).toLocaleString().substr(0,2);
 
             chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  Duration: ${durationMinutes}:${durationSeconds}  Count: ${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
             chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  ${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${threeMinuteBottom}px; left: ${left}px"></div></li>`);
