@@ -227,21 +227,27 @@ function renderChart(map){
             let count = (list[list.length - 1]?.count ?? 0);
             let bottom = count / highestCount * graphDimensionPixels;
             let left = index * (graphWidthPixels / map.size) + graphMarginPixels;
-            let threeMinuteCount = getCountAtTime(list, threeMinutes);
-            let threeMinuteBottom = threeMinuteCount / highestCount * graphDimensionPixels;
+            let threeMinuteCountData = getCountAtTime(list, threeMinutes);
+            let threeMinuteBottom = threeMinuteCountData.count / highestCount * graphDimensionPixels;
             let startTime = new Date(key).toLocaleString();
 
             let duration = list[list.length - 1].boopTimeOffsetMilliseconds;
-            let durationMinutes = Math.floor(duration / 60000);
-            let durationSeconds = Math.floor(duration % 60000).toLocaleString().substr(0,2);
 
-            chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  Duration: ${durationMinutes}:${durationSeconds}  Count: ${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
+            chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  Duration: ${getBoopDuration(duration)}  Count: ${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
             
             if(duration > threeMinutes){
-                chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  Duration: ${durationMinutes}:${durationSeconds}  ${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${threeMinuteBottom}px; left: ${left}px"></div></li>`);
+                chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  Duration: ${getBoopDuration(threeMinuteCountData.boopTimeOffsetMilliseconds)}  ${threeMinuteCountData.count} boops" class="data-point-three" data-value="${threeMinuteCountData.count}" style="bottom: ${threeMinuteBottom}px; left: ${left}px"></div></li>`);
             }
         }
     }
+}
+
+
+function getBoopDuration(milliseconds) {
+    let durationMinutes = Math.floor(milliseconds / 60000);
+    let durationSeconds = Math.floor(milliseconds % 60000).toLocaleString().substr(0, 2);
+
+    return durationMinutes + ":" + durationSeconds;
 }
 
 function getHighestCount(list){
@@ -250,20 +256,20 @@ function getHighestCount(list){
 
 function getCountAtTime(list, maxTimeMilliseconds){
     let timeMilliseconds = 0;
-    let count = 0;
+    let index = -1;
     
     for(let i = 0; i < list.length; i++){
         
         if(list[i].boopTimeOffsetMilliseconds <= maxTimeMilliseconds && list[i].boopTimeOffsetMilliseconds > timeMilliseconds)
         {
+            index = i;
             timeMilliseconds = list[i].boopTimeOffsetMilliseconds;
-            count = list[i].count;
         }
         
         list[list.length - 1];
     }
     
-    return count;
+    return list[index];
 }
 
 function loadSessions(){
