@@ -224,14 +224,18 @@ function renderChart(map){
         
         if(list)
         {
-            var count = (list[list.length - 1]?.count ?? 0);
-            var bottom = count / highestCount * graphDimensionPixels;
-            var left = index * (graphWidthPixels / map.size) + graphMarginPixels;
-            var threeMinuteCount = getCountAtTime(list, threeMinutes);
-            var threeMinuteBottom = threeMinuteCount / highestCount * graphDimensionPixels;
+            let count = (list[list.length - 1]?.count ?? 0);
+            let bottom = count / highestCount * graphDimensionPixels;
+            let left = index * (graphWidthPixels / map.size) + graphMarginPixels;
+            let threeMinuteCount = getCountAtTime(list, threeMinutes);
+            let threeMinuteBottom = threeMinuteCount / highestCount * graphDimensionPixels;
+            let startTime = new Date(key).toLocaleString();
 
-            chart.insertAdjacentHTML("beforeend", `<li><div title="${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
-            chart.insertAdjacentHTML("beforeend", `<li><div title="${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${threeMinuteBottom}px; left: ${left}px"></div></li>`);
+            let durationMinutes = Math.floor(list[list.length - 1].boopTimeOffsetMilliseconds / 60000);
+            let durationSeconds = Math.floor(list[list.length - 1].boopTimeOffsetMilliseconds % 60000);
+
+            chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  Duration: ${durationMinutes}:${durationSeconds}  Count: ${count} boops" class="data-point-max" data-value="${count}" style="bottom: ${bottom}px; left: ${left}px"></div></li>`);
+            chart.insertAdjacentHTML("beforeend", `<li><div title="Start Time: ${startTime}  ${threeMinuteCount} boops" class="data-point-three" data-value="${threeMinuteCount}" style="bottom: ${threeMinuteBottom}px; left: ${left}px"></div></li>`);
         }
     }
 }
