@@ -254,7 +254,7 @@ function loadFromClipboard() {
             boopsMap.set(key, importedMap.get(key));
         }
         
-        localStorage[storageKey] = boopsMap;
+        localStorage[storageKey] = JSON.stringify(Array.from(boopsMap.entries()));
     });
 }
 
