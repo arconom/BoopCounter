@@ -245,7 +245,7 @@ function renderChart(map){
 
 function getBoopDuration(milliseconds) {
     let durationMinutes = Math.floor(milliseconds / 60000);
-    let durationSeconds = Math.floor(milliseconds % 60000).toLocaleString().substr(0, 2);
+    let durationSeconds = (Math.floor(milliseconds % 60000) / 1000).toLocaleString().substr(0,2).padStart(2, "0");
 
     return durationMinutes + ":" + durationSeconds;
 }
