@@ -245,7 +245,7 @@ function renderChart(map){
 }
 
 function loadFromClipboard() {
-    navigator.clipboard.readText(str).then(function (result) {
+    navigator.clipboard.readText().then(function (result) {
         const data = localStorage[storageKey] ?? null;
         const boopsMap = new Map(JSON.parse(data));
         const importedMap = new Map(JSON.parse(result));
