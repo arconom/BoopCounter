@@ -251,9 +251,10 @@ function loadFromClipboard() {
         const importedMap = new Map(JSON.parse(result));
 
         for (let key of importedMap.keys()) {
-
             boopsMap.set(key, importedMap.get(key));
         }
+        
+        localStorage[storageKey] = boopsMap;
     });
 }
 
