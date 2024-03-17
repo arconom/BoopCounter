@@ -245,7 +245,7 @@ function renderChart(map){
 }
 
 function loadFromClipboard() {
-    Navigator.clipboard.readText(str).then(function (result) {
+    navigator.clipboard.readText(str).then(function (result) {
         const data = localStorage[storageKey] ?? null;
         const boopsMap = new Map(JSON.parse(data));
         const importedMap = new Map(JSON.parse(result));
@@ -258,7 +258,7 @@ function loadFromClipboard() {
 }
 
 function copyBoopsToClipboard(){
-    Navigator.clipboard.writeText(localStorage["boops"]).then(function(result){
+    navigator.clipboard.writeText(localStorage["boops"]).then(function(result){
         alert("copied to clipboard");
     });
 }
