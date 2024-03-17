@@ -145,6 +145,8 @@ width: 8px;
 </div>
 
 <div><button onclick="deleteStorage()">Click to delete localStorage["boops"]</button></div>
+<div><button onclick="copyToClipboard(localStorage['boops'])">Click to copy localStorage["boops"]</button></div>
+<div><button onclick="loadFromClipboard()">Click to merge clipboard into localStorage["boops"]</button></div>
 
 <figure class="css-chart" style="--widget-size: 400px;">
 <ul id="ulChart" class="line-chart">
@@ -240,6 +242,25 @@ function renderChart(map){
             }
         }
     }
+}
+
+function loadFromClipboard() {
+    Navigator.clipboard.readText(str).then(function (result) {
+        const data = localStorage[storageKey] ?? null;
+        const boopsMap = new Map(JSON.parse(data));
+        const importedMap = new Map(JSON.parse(result));
+
+        for (let key of importedMap.keys()) {
+
+            boopsMap.set(key, importedMap.get(key));
+        }
+    });
+}
+
+function copyToClipboard(str){
+    Navigator.clipboard.writeText(str).then(function(result){
+        alert("copied to clipboard");
+    });
 }
 
 
