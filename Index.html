@@ -145,7 +145,7 @@ width: 8px;
 </div>
 
 <div><button onclick="deleteStorage()">Click to delete localStorage["boops"]</button></div>
-<div><button onclick="copyToClipboard(localStorage['boops'])">Click to copy localStorage["boops"]</button></div>
+<div><button onclick="copyBoopsToClipboard()">Click to copy localStorage["boops"]</button></div>
 <div><button onclick="loadFromClipboard()">Click to merge clipboard into localStorage["boops"]</button></div>
 
 <figure class="css-chart" style="--widget-size: 400px;">
@@ -257,8 +257,8 @@ function loadFromClipboard() {
     });
 }
 
-function copyToClipboard(str){
-    Navigator.clipboard.writeText(str).then(function(result){
+function copyBoopsToClipboard(){
+    Navigator.clipboard.writeText(localStorage["boops"]).then(function(result){
         alert("copied to clipboard");
     });
 }
